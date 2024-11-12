@@ -1,8 +1,10 @@
 <template>
     <DefaultLayout>
-        <h1 class="text-4xl font-bold text-center text-gray-800">About Us</h1>
+        <h1 class="text-4xl font-bold text-center text-gray-800">
+            Add new task
+        </h1>
         <p class="mt-4 text-lg text-gray-600 text-center">
-            Learn more about our company and mission.
+            Complete the form bellow to add a new task
         </p>
     </DefaultLayout>
 </template>

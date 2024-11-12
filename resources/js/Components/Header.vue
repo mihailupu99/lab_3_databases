@@ -11,8 +11,8 @@
                         <Link href="/" class="hover:text-gray-300">Home</Link>
                     </li>
                     <li>
-                        <Link href="/about" class="hover:text-gray-300"
-                            >About</Link
+                        <Link href="/tasks/create" class="hover:text-gray-300"
+                            >Add new task</Link
                         >
                     </li>
                     <li>

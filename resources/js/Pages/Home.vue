@@ -1,10 +1,10 @@
 <template>
     <DefaultLayout>
         <h1 class="text-4xl font-bold text-center text-gray-800">
-            Welcome to the Home Page
+            Welcome to our TODO applet
         </h1>
         <p class="mt-4 text-lg text-gray-600 text-center">
-            This is the home page of your website.
+            Take a look at our current todo# tasks bellow.
         </p>
     </DefaultLayout>
 </template>
