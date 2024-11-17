@@ -9,14 +9,4 @@
     </DefaultLayout>
 </template>
 
-<script>
-import DefaultLayout from "../Layouts/DefaultLayout.vue";
-
-export default {
-    layout: DefaultLayout, // Apply the same layout as Home.vue
-};
-</script>
-
-<style scoped>
-/* Page-specific styles for About */
-</style>
+<script></script>

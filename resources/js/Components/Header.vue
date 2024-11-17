@@ -1,26 +1,60 @@
 <template>
-    <header class="bg-cyan-600 text-white py-4">
+    <header class="bg-gray-200 text-gray-700 font-medium py-4">
         <div class="container mx-auto flex justify-between items-center">
             <!-- Logo or Brand Name -->
-            <div class="text-lg font-bold">TODO applet</div>
+            <div class="text-lg font-bold">
+                <Link :href="route('home')">TODO applet</Link>
+            </div>
 
             <!-- Navbar -->
             <nav>
-                <ul class="flex space-x-6">
-                    <li>
-                        <Link href="/" class="hover:text-gray-300">Home</Link>
-                    </li>
-                    <li>
-                        <Link href="/tasks/create" class="hover:text-gray-300"
-                            >Add new task</Link
+                <div class="flex space-x-6 items-center">
+                    <Link
+                        :href="route('home')"
+                        class="px-4 py-2 rounded-xl hover:bg-gray-400 transition hover:text-white"
+                        >Home</Link
+                    >
+                    <div class="flex gap-4" v-if="$page.props.auth.user">
+                        <Link
+                            href="/tasks/create"
+                            class="px-4 py-2 rounded-xl hover:bg-gray-400 transition hover:text-white"
                         >
-                    </li>
-                    <li>
-                        <Link href="/contact" class="hover:text-gray-300"
-                            >Contact</Link
+                            New task</Link
                         >
-                    </li>
-                </ul>
+                        <Link
+                            href="/tasks"
+                            class="px-4 py-2 rounded-xl hover:bg-gray-400 transition hover:text-white"
+                        >
+                            Current Tasks</Link
+                        >
+                        <Link
+                            :href="route('logout')"
+                            method="post"
+                            as="button"
+                            type="button"
+                            class="px-4 py-2 rounded-xl hover:bg-gray-400 transition hover:text-white"
+                            >Logout</Link
+                        >
+                    </div>
+                    <div class="flex gap-4" v-else>
+                        <Link
+                            :href="route('register')"
+                            class="px-4 py-2 rounded-xl hover:bg-gray-400 transition hover:text-white"
+                            >Register</Link
+                        >
+                        <Link
+                            :href="route('login')"
+                            class="px-4 py-2 rounded-xl hover:bg-gray-400 transition hover:text-white"
+                            >Login</Link
+                        >
+                    </div>
+
+                    <Link
+                        href="/contact"
+                        class="px-4 py-2 rounded-xl hover:bg-gray-400 transition hover:text-white"
+                        >Contact</Link
+                    >
+                </div>
             </nav>
         </div>
     </header>
@@ -33,9 +67,6 @@ export default {
 </script>
 
 <script setup>
-import { Link, usePage } from "@inertiajs/vue3";
-import { computed } from "vue";
+import { Link } from "@inertiajs/vue3";
+import { route } from "../../../vendor/tightenco/ziggy/src/js";
 </script>
-<style scoped>
-/* Header-specific styles */
-</style>

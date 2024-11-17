@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
-
-use Illuminate\Http\Request;
+use App\Models\Tag;
 
 use App\Models\Task;
+
+use Inertia\Inertia;
+use App\Models\Category;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
@@ -14,60 +16,86 @@ class TaskController extends Controller
     // Display a list of tasks
     public function index()
     {
-        $tasks = Task::all();
-        return Inertia::render('Tasks/Index', [
+        $tasks = Task::with('category', 'tags')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10); // Show 10 items per page
+
+        return inertia('Tasks/Index', [
             'tasks' => $tasks,
         ]);
     }
-
     // Show a form for creating a new task
     public function create()
     {
-        return Inertia::render('Tasks/Create');
+        return Inertia::render('Tasks/Create', [
+            'categories' => Category::all(),
+            'tags' => Tag::all(),
+        ]);
     }
 
     // Save a new task
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
         ]);
 
-        Task::create($request->all());
+        $task = Task::create($validated);
 
-        return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
+        if (isset($validated['tags'])) {
+            $task->tags()->attach($validated['tags']);
+        }
+
+        return redirect()->route('tasks.index')->with('success', 'Task created successfully!');
     }
 
     // Display a single task
     public function show(Task $task)
     {
-        return Inertia::render('Tasks/Show', [
-            'task' => $task,
-        ]);
+        $task->load(['category', 'tags']); // Eager load the category and tags relationships 
+        return Inertia::render('Tasks/Show', ['task' => $task,]);
     }
 
     // Show a form to edit a task
     public function edit(Task $task)
     {
         return Inertia::render('Tasks/Edit', [
-            'task' => $task,
+            'task' => $task->load(['tags', 'category']),
+            'categories' => Category::all(),
+            'allTags' => Tag::all(), // Add this line to pass all available tags
         ]);
     }
 
     // Update the specified task
     public function update(Request $request, Task $task)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
+            'category_id' => 'nullable|exists:categories,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id', // Validate each tag ID
         ]);
 
-        $task->update($request->all());
+        // Update the task
+        $task->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'category_id' => $validated['category_id'],
+        ]);
 
-        return redirect()->route('tasks.index')->with('success', 'Task updated successfully.');
+        // Sync tags
+        if (isset($validated['tags'])) {
+            $task->tags()->sync($validated['tags']);
+        }
+
+        return redirect()->route('tasks.index')
+            ->with('success', 'Task updated successfully.');
     }
-
     // Delete the specified task
     public function destroy(Task $task)
     {
