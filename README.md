@@ -16,7 +16,7 @@ DB_PASSWORD=****pass****
 
 ## №2. Crearea modelelor și migrațiilor
 
-```
+```php
 return new class extends Migration
 {
     /**
