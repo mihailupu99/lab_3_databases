@@ -282,3 +282,336 @@ class TaskController extends Controller
 
 
 ```
+
+# Partea Laborator Nr. 4. Formulare și validarea datelor
+
+## №2. Crearea formularului
+
+Formular creat cu ajutorul VUE
+
+```vue
+<template>
+    <div class="max-w-3xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Create Task</h1>
+        <form @submit.prevent="submit" class="space-y-6">
+            <!-- Title -->
+            <div>
+                <label
+                    for="title"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    >Title</label
+                >
+                <input
+                    v-model="form.title"
+                    type="text"
+                    id="title"
+                    class="input mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Enter task title"
+                    required
+                />
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label
+                    for="description"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    >Description</label
+                >
+                <textarea
+                    v-model="form.description"
+                    id="description"
+                    rows="4"
+                    class="input mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Enter task description"
+                ></textarea>
+            </div>
+
+            <!-- Category -->
+            <div>
+                <label
+                    for="category"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    >Category</label
+                >
+                <select
+                    v-model="form.category_id"
+                    id="category"
+                    class="input mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                    <option value="" disabled>Select a category</option>
+                    <option
+                        v-for="category in categories"
+                        :key="category.id"
+                        :value="category.id"
+                    >
+                        {{ category.name }}
+                    </option>
+                </select>
+            </div>
+
+            <!-- Tags -->
+            <div>
+                <label
+                    for="tags"
+                    class="block text-sm font-medium text-gray-700 mb-1"
+                    >Tags</label
+                >
+                <select
+                    v-model="form.tags"
+                    id="tags"
+                    multiple
+                    class="input mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                    <option v-for="tag in tags" :key="tag.id" :value="tag.id">
+                        {{ tag.name }}
+                    </option>
+                </select>
+                <p class="text-sm text-gray-500 mt-1">
+                    Hold <strong>Ctrl</strong> (or <strong>Cmd</strong> on Mac)
+                    to select multiple tags.
+                </p>
+            </div>
+
+            <!-- Submit -->
+            <div class="flex justify-end">
+                <button
+                    type="submit"
+                    class="btn btn-primary bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50"
+                >
+                    Save Task
+                </button>
+            </div>
+        </form>
+    </div>
+</template>
+
+<script>
+import DefaultLayout from "../../Layouts/DefaultLayout.vue";
+import { useForm } from "@inertiajs/vue3";
+
+export default {
+    layout: DefaultLayout,
+    props: {
+        categories: Array, // List of categories passed from the server
+        tags: Array, // List of tags passed from the server
+    },
+    setup() {
+        const form = useForm({
+            title: "",
+            description: "",
+            category_id: null, // Category ID
+            tags: [], // Selected tags
+        });
+
+        function submit() {
+            form.post("/tasks");
+        }
+
+        return { form, submit };
+    },
+};
+</script>
+
+<style scoped>
+.input {
+    transition: all 0.3s ease-in-out;
+}
+
+.input:focus {
+    outline: none;
+}
+</style>
+```
+
+## №3. Validarea datelor pe partea de server
+
+Exemplu de validare a datelor.
+
+```php
+ public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
+        ]);
+
+        $task = Task::create($validated);
+
+        if (isset($validated['tags'])) {
+            $task->tags()->attach($validated['tags']);
+        }
+
+        return redirect()->route('tasks.index')->with('success', 'Task created successfully!');
+    }
+
+```
+
+## №7. Actualizarea sarcinii
+
+```vue
+<template>
+    <div class="max-w-4xl mx-auto mt-10 p-6 bg-white shadow-lg rounded-lg">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Edit Task</h1>
+
+        <form @submit.prevent="submit">
+            <!-- Your existing form fields -->
+
+            <div class="mb-4">
+                <label for="title" class="block text-gray-700 font-medium"
+                    >Title</label
+                >
+                <input
+                    v-model="form.title"
+                    type="text"
+                    id="title"
+                    class="w-full mt-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+            </div>
+
+            <div class="mb-4">
+                <label for="description" class="block text-gray-700 font-medium"
+                    >Description</label
+                >
+                <textarea
+                    v-model="form.description"
+                    id="description"
+                    rows="4"
+                    class="w-full mt-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                ></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label for="category" class="block text-gray-700 font-medium"
+                    >Category</label
+                >
+                <select
+                    v-model="form.category_id"
+                    id="category"
+                    class="w-full mt-2 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                    <option value="">No category</option>
+                    <option
+                        v-for="category in categories"
+                        :key="category.id"
+                        :value="category.id"
+                    >
+                        {{ category.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="tags" class="block text-gray-700 font-medium"
+                    >Tags</label
+                >
+                <div class="flex flex-wrap gap-2 mt-2">
+                    <span
+                        v-for="tag in allTags"
+                        :key="tag.id"
+                        class="px-2 py-1 border rounded-lg cursor-pointer"
+                        :class="{
+                            'bg-teal-600 text-white': form.tags.includes(
+                                tag.id
+                            ),
+                            'bg-gray-200 text-gray-800': !form.tags.includes(
+                                tag.id
+                            ),
+                        }"
+                        @click="toggleTag(tag.id)"
+                    >
+                        {{ tag.name }}
+                    </span>
+                </div>
+            </div>
+            <!-- Add error messages -->
+            <div v-if="form.errors.title" class="text-red-500 mt-1">
+                {{ form.errors.title }}
+            </div>
+
+            <!-- Add loading state -->
+            <button
+                type="submit"
+                class="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 disabled:opacity-50"
+                :disabled="form.processing"
+            >
+                {{ form.processing ? "Saving..." : "Save Changes" }}
+            </button>
+        </form>
+    </div>
+</template>
+
+<script>
+import { useForm } from "@inertiajs/vue3";
+
+export default {
+    props: {
+        task: Object,
+        categories: Array,
+        allTags: Array, // Add this prop
+    },
+    setup(props) {
+        const form = useForm({
+            title: props.task.title,
+            description: props.task.description,
+            category_id: props.task.category_id || "",
+            tags: props.task.tags.map((tag) => tag.id) || [],
+        });
+
+        const toggleTag = (tagId) => {
+            const index = form.tags.indexOf(tagId);
+            if (index > -1) {
+                form.tags.splice(index, 1);
+            } else {
+                form.tags.push(tagId);
+            }
+        };
+
+        const submit = () => {
+            form.put(route("tasks.update", props.task.id), {
+                onSuccess: () => {
+                    // Optional: Add success handling
+                },
+                preserveScroll: true,
+            });
+        };
+
+        return { form, toggleTag, submit };
+    },
+};
+</script>
+```
+
+Metoda update din controller
+
+```php
+  public function update(Request $request, Task $task)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category_id' => 'nullable|exists:categories,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
+        ]);
+
+        // Update the task
+        $task->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'category_id' => $validated['category_id'],
+        ]);
+
+        // Sync tags
+        if (isset($validated['tags'])) {
+            $task->tags()->sync($validated['tags']);
+        }
+
+        return redirect()->route('tasks.index')
+            ->with('success', 'Task updated successfully.');
+    }
+
+```
