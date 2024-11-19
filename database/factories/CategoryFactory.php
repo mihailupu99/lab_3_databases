@@ -18,8 +18,8 @@ class CategoryFactory extends Factory
     {
         return [
             //
-            'name' => $this->faker->word, // Nume aleator
-            'description' => $this->faker->sentence, // Descriere aleatoare
+            'name' => $this->faker->word,
+            'description' => $this->faker->sentence,
         ];
     }
 }

@@ -66,7 +66,7 @@ class TaskController extends Controller
         return Inertia::render('Tasks/Edit', [
             'task' => $task->load(['tags', 'category']),
             'categories' => Category::all(),
-            'allTags' => Tag::all(), // Add this line to pass all available tags
+            'allTags' => Tag::all(),
         ]);
     }
 
@@ -78,7 +78,7 @@ class TaskController extends Controller
             'description' => 'required|string',
             'category_id' => 'nullable|exists:categories,id',
             'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id', // Validate each tag ID
+            'tags.*' => 'exists:tags,id',
         ]);
 
         // Update the task

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('tasks', function (Blueprint $table) {
             if (!Schema::hasColumn('tasks', 'category_id')) {
-                $table->unsignedBigInteger('category_id')->nullable(); // Adaugă câmpul dacă nu există
+                $table->unsignedBigInteger('category_id')->nullable();
                 $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
             }
         });
@@ -26,8 +26,8 @@ return new class extends Migration
     {
         Schema::table('tasks', function (Blueprint $table) {
             //
-            $table->dropForeign(['category_id']); // șterge cheia externă
-            $table->dropColumn('category_id'); // șterge coloana
+            $table->dropForeign(['category_id']);
+            $table->dropColumn('category_id');
         });
     }
 };
