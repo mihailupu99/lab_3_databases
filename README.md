@@ -450,6 +450,81 @@ Exemplu de validare a datelor.
 
 ```
 
+## №4. Crearea unei clase de cerere personalizată (Request)
+
+Cream Requestl CreateTaskRequest
+
+```php
+    public function rules(): array
+    {
+        return [
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+                'min:3',
+                'regex:/^[a-zA-Z\s]+$/'
+            ],
+            'description' => 'nullable|string',
+            'category_id' => 'nullable|exists:categories,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'title.required' => 'Titlul este obligatoriu.',
+            'title.string' => 'Titlul trebuie să fie un șir de caractere.',
+            'title.min' => 'Titlul trebuie sa aiba mai mult de 2 caractere.',
+            'title.max' => 'Titlul nu poate avea mai mult de 255 de caractere.',
+            'description.string' => 'Descrierea trebuie să fie un șir de caractere.',
+            'category_id.exists' => 'Categoria selectată nu este validă.',
+            'tags.array' => 'Tag-urile trebuie să fie un array.',
+            'tags.*.exists' => 'Unul sau mai multe tag-uri selectate nu sunt valide.',
+        ];
+    }
+
+```
+
+TaskController foloseste CreateTaskRequest pentru validare
+
+```php
+   public function store(CreateTaskRequest $request)
+    {
+        $validated = $request->validated();
+
+        $task = Task::create($validated);
+
+        if (isset($validated['tags'])) {
+            $task->tags()->attach($validated['tags']);
+        }
+
+        return redirect()->route('tasks.index')->with('success', 'Task created successfully!');
+    }
+
+```
+
+## №5. Adăugarea mesajelor flash
+
+Pentru mesaj flash de confirmare la salvarea cu succes a sarcinii am folosit vue-toastification
+
+```javascript
+
+function submit() { form.post("/tasks"); toast.success("Task added
+succesfully"); }
+
+```
+
+## №6. Protecția împotriva CSRF
+
+Deoarece am folosti Vue si inertiajs pentru handling la requesturi, csrf_token se include automat.
+
+"You can use Inertia's shared data functionality to automatically include the csrf_token with each response."
+
+Iar in alte parti unde nu am folosit inertia ci axios, acesta tot are CSRF built in.
+
 ## №7. Actualizarea sarcinii
 
 ```vue

@@ -11,8 +11,11 @@ Route::inertia('/', 'Home')->name('home');
 
 Route::middleware('auth')->group(function () {
     Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
-    Route::inertia('/tasks', 'Tasks')->name('tasks');
+    // Route::inertia('/tasks', 'Tasks')->name('tasks');
     Route::resource('tasks', TaskController::class);
+
+    Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+
 
     Route::get('/tasks/{task}/edit', [TaskController::class, 'edit'])->name('tasks.edit');
     Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');

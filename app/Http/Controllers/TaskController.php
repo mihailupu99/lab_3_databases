@@ -9,6 +9,7 @@ use App\Models\Task;
 use Inertia\Inertia;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use App\Http\Requests\CreateTaskRequest;
 
 class TaskController extends Controller
 {
@@ -34,15 +35,33 @@ class TaskController extends Controller
     }
 
     // Save a new task
-    public function store(Request $request)
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'title' => [
+    //             'required',
+    //             'string',
+    //             'max:255',
+    //             'min:3',
+    //             'regex:/^[a-zA-Z\s]+$/'
+    //         ],
+    //         'description' => 'nullable|string',
+    //         'category_id' => 'nullable|exists:categories,id',
+    //         'tags' => 'nullable|array',
+    //         'tags.*' => 'exists:tags,id',
+    //     ]);
+
+    //     $task = Task::create($validated);
+
+    //     if (isset($validated['tags'])) {
+    //         $task->tags()->attach($validated['tags']);
+    //     }
+
+    //     return redirect()->route('tasks.index')->with('success', 'Task created successfully!');
+    // }
+    public function store(CreateTaskRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category_id' => 'nullable|exists:categories,id',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id',
-        ]);
+        $validated = $request->validated();
 
         $task = Task::create($validated);
 

@@ -7,8 +7,9 @@
                 <label
                     for="title"
                     class="block text-sm font-medium text-gray-700 mb-1"
-                    >Title</label
                 >
+                    Title
+                </label>
                 <input
                     v-model="form.title"
                     type="text"
@@ -17,6 +18,9 @@
                     placeholder="Enter task title"
                     required
                 />
+                <div v-if="form.errors.title" class="text-red-600 text-sm mt-1">
+                    {{ form.errors.title }}
+                </div>
             </div>
 
             <!-- Description -->
@@ -24,8 +28,9 @@
                 <label
                     for="description"
                     class="block text-sm font-medium text-gray-700 mb-1"
-                    >Description</label
                 >
+                    Description
+                </label>
                 <textarea
                     v-model="form.description"
                     id="description"
@@ -33,6 +38,12 @@
                     class="input mt-1 block w-full p-3 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Enter task description"
                 ></textarea>
+                <div
+                    v-if="form.errors.description"
+                    class="text-red-600 text-sm mt-1"
+                >
+                    {{ form.errors.description }}
+                </div>
             </div>
 
             <!-- Category -->
@@ -40,8 +51,9 @@
                 <label
                     for="category"
                     class="block text-sm font-medium text-gray-700 mb-1"
-                    >Category</label
                 >
+                    Category
+                </label>
                 <select
                     v-model="form.category_id"
                     id="category"
@@ -56,6 +68,12 @@
                         {{ category.name }}
                     </option>
                 </select>
+                <div
+                    v-if="form.errors.category_id"
+                    class="text-red-600 text-sm mt-1"
+                >
+                    {{ form.errors.category_id }}
+                </div>
             </div>
 
             <!-- Tags -->
@@ -63,8 +81,9 @@
                 <label
                     for="tags"
                     class="block text-sm font-medium text-gray-700 mb-1"
-                    >Tags</label
                 >
+                    Tags
+                </label>
                 <select
                     v-model="form.tags"
                     id="tags"
@@ -75,10 +94,9 @@
                         {{ tag.name }}
                     </option>
                 </select>
-                <p class="text-sm text-gray-500 mt-1">
-                    Hold <strong>Ctrl</strong> (or <strong>Cmd</strong> on Mac)
-                    to select multiple tags.
-                </p>
+                <div v-if="form.errors.tags" class="text-red-600 text-sm mt-1">
+                    {{ form.errors.tags }}
+                </div>
             </div>
 
             <!-- Submit -->
@@ -98,22 +116,27 @@
 import DefaultLayout from "../../Layouts/DefaultLayout.vue";
 import { useForm } from "@inertiajs/vue3";
 
+import { useToast } from "vue-toastification";
+
+const toast = useToast();
+
 export default {
     layout: DefaultLayout,
     props: {
-        categories: Array, // List of categories passed from the server
-        tags: Array, // List of tags passed from the server
+        categories: Array,
+        tags: Array,
     },
     setup() {
         const form = useForm({
             title: "",
             description: "",
-            category_id: null, // Category ID
-            tags: [], // Selected tags
+            category_id: null,
+            tags: [],
         });
 
         function submit() {
             form.post("/tasks");
+            toast.success("Task added succesfully");
         }
 
         return { form, submit };
