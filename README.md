@@ -690,3 +690,216 @@ Metoda update din controller
     }
 
 ```
+
+# Partea Laborator Nr. 5. Componentele de securitate în Laravel
+
+## Nr. 1. Pregătirea pentru lucru
+
+Am folosit proiectul din lucrarile de laborator precedente.
+
+## Nr. 2. Autentificarea utilizatorilor
+
+Implementarea AuthController cu functiile de register, login si logout.
+
+```php
+class AuthController extends Controller
+{
+    //
+    public function register(Request $request)
+    {
+        sleep(1);
+        // Validate
+        $fields = $request->validate([
+            'name' => ['required', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'confirmed'],
+
+        ]);
+
+        // Register
+        $user = User::create($fields);
+
+        // Login
+        Auth::login($user);
+
+        // Redirect
+    }
+
+    public function login(Request $request)
+    {
+        $fields = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        if (Auth::attempt($fields, $request->remember)) {
+            $request->session()->regenerate();
+
+            return redirect()->intended('dashboard');
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->onlyInput('email');
+    }
+
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home');
+    }
+}
+
+
+```
+
+## Nr. 3. Autentificarea utilizatorilor cu ajutorul componentelor existente
+
+Utilizarea bibliotecei Laravel Breeze care creaza singura diverse controllere de tip Auth
+
+Exemplu RegisteredUserController
+
+```php
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
+use Inertia\Inertia;
+use Inertia\Response;
+
+class RegisteredUserController extends Controller
+{
+    /**
+     * Display the registration view.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('Auth/Register');
+    }
+
+    /**
+     * Handle an incoming registration request.
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        return redirect(route('dashboard', absolute: false));
+    }
+}
+
+
+```
+
+Exemplu rute
+
+```php
+Route::middleware('auth')->group(function () {
+    Route::get('verify-email', EmailVerificationPromptController::class)
+        ->name('verification.notice');
+
+    Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+        ->middleware(['signed', 'throttle:6,1'])
+        ->name('verification.verify');
+
+    Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('verification.send');
+
+    Route::get('confirm-password', [ConfirmablePasswordController::class, 'show'])
+        ->name('password.confirm');
+
+    Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
+
+    Route::put('password', [PasswordController::class, 'update'])->name('password.update');
+
+    Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
+        ->name('logout');
+});
+
+```
+
+## Nr. 4. Autorizarea utilizatorilor
+
+Rute protejate prin auth
+
+```php
+Route::middleware('auth')->group(function () {
+    Route::inertia('/dashboard', 'Dashboard')->name('dashboard');
+    // Route::inertia('/tasks', 'Tasks')->name('tasks');
+    Route::resource('tasks', TaskController::class);
+
+    Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+
+
+    Route::get('/tasks/{task}/edit', [TaskController::class, 'edit'])->name('tasks.edit');
+    Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+    Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
+
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+});
+
+
+```
+
+## Nr. 6. Deconectarea și protecția împotriva CSRF
+
+Functia logout
+
+```php
+   public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return redirect()->route('home');
+    }
+
+```
+
+Link ce face point spre logout
+
+```vue
+<Link
+    :href="route('logout')"
+    method="post"
+    as="button"
+    type="button"
+    class="px-4 py-2 rounded-xl hover:bg-gray-400 transition hover:text-white"
+>Logout</Link>
+```
+
+By default vue si anume inertia au protectie impotriva CSRF

@@ -117,9 +117,7 @@ export default {
 
         const submit = () => {
             form.put(route("tasks.update", props.task.id), {
-                onSuccess: () => {
-                    // Optional: Add success handling
-                },
+                onSuccess: () => {},
                 preserveScroll: true,
             });
         };
